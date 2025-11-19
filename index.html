@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz de Lógica Global</title>
+    <title>MindSpark Quiz</title>
     <style>
         :root {
             --primary: #2c3e50;
@@ -11,16 +11,26 @@
             --correct: #27ae60;
             --wrong: #c0392b;
             --light: #ecf0f1;
+            --vs-color: #8e44ad;
         }
         body {
             font-family: 'Segoe UI', sans-serif;
-            background-color: #2c3e50;
+            background-color: #ffffff;
             color: #333;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            justify-content: flex-start; /* Alinha do topo */
             align-items: center;
             min-height: 100vh;
             margin: 0;
+            padding-top: 50px; /* Espaço para a logo */
+            box-sizing: border-box;
+        }
+        .logo {
+            height: 150px;
+            width: auto;
+            margin-bottom: 2rem;
+            object-fit: contain;
         }
         .container {
             background-color: white;
@@ -30,6 +40,7 @@
             max-width: 600px;
             overflow: hidden;
             position: relative;
+            min-height: 400px;
         }
         .header {
             background-color: var(--primary);
@@ -40,14 +51,21 @@
             align-items: center;
         }
         .timer-bar { height: 5px; background-color: var(--accent); width: 100%; transition: width 1s linear; }
-        .content { padding: 20px; }
+        .content { padding: 20px; text-align: center; }
         .screen { display: none; animation: fadeIn 0.5s; }
         .active { display: block; }
-        input[type="text"] { width: 100%; padding: 12px; margin: 15px 0; border: 2px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 16px;}
-        button { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: 0.2s; }
+        
+        input[type="text"] { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 16px;}
+        
+        button { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: 0.2s; font-weight: bold; }
+        
         .btn-main { background-color: var(--accent); color: white; }
         .btn-main:hover { background-color: #1f6391; }
-        .btn-option { background-color: var(--light); color: #333; text-align: left; margin-bottom: 8px; }
+        
+        .btn-vs { background-color: var(--vs-color); color: white; }
+        .btn-vs:hover { background-color: #732d91; }
+
+        .btn-option { background-color: var(--light); color: #333; text-align: left; margin-bottom: 8px; font-weight: normal; }
         .btn-option:hover:not([disabled]) { background-color: #dce4e6; transform: translateX(5px); }
         .btn-option.correct { background-color: var(--correct); color: white; }
         .btn-option.wrong { background-color: var(--wrong); color: white; }
@@ -58,24 +76,59 @@
         
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; display: none; }
         
+        .vs-score-board {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            font-size: 1.2em;
+        }
+        .winner-highlight { color: var(--correct); font-size: 1.5em; }
+
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
+<img class="logo" src="static\logo_mindspark.jpeg" alt="logo mindspark">
+
 <div class="container">
     
-    <div id="screen-start" class="screen active content">
-        <h1>🌎 Quiz Global de Lógica</h1>
-        <p>Teste sua lógica. Seu resultado aparecerá no Ranking Mundial!</p>
+    <div id="screen-menu" class="screen active content">
+        <h1>⚡ MindSpark Quiz</h1>
+        <p>Escolha seu modo de jogo:</p>
+        <button class="btn-main" onclick="window.goToRankedSetup()">🏆 Jogar Rankeada (Global)</button>
+        <button class="btn-vs" onclick="window.goTo1v1Setup()">⚔️ 1 vs 1 (Local)</button>
+    </div>
+
+    <div id="screen-setup-ranked" class="screen content">
+        <h2>🏆 Modo Rankeada</h2>
+        <p>Seu resultado vai para o ranking global!</p>
         <label>Seu Nickname:</label>
-        <input type="text" id="nickname" placeholder="Ex: MestreDosCodigos" maxlength="15">
-        <button class="btn-main" onclick="window.startGame()">Começar Desafio</button>
+        <input type="text" id="nick-ranked" placeholder="Ex: MestreDaLogica" maxlength="15">
+        <button class="btn-main" onclick="window.startRanked()">Iniciar Desafio</button>
+        <button style="background: #95a5a6; color:white" onclick="location.reload()">Voltar</button>
+    </div>
+
+    <div id="screen-setup-1v1" class="screen content">
+        <h2>⚔️ Modo 1 vs 1</h2>
+        <p>Desafie um amigo no mesmo PC/Celular.</p>
+        <input type="text" id="nick-p1" placeholder="Nome do Jogador 1" maxlength="10">
+        <input type="text" id="nick-p2" placeholder="Nome do Jogador 2" maxlength="10">
+        <button class="btn-vs" onclick="window.start1v1()">Começar Batalha</button>
+        <button style="background: #95a5a6; color:white" onclick="location.reload()">Voltar</button>
+    </div>
+
+    <div id="screen-intermission" class="screen content">
+        <h2 style="color: var(--vs-color)">✋ Pare!</h2>
+        <h3>Fim da vez do Jogador 1</h3>
+        <p>Passe o dispositivo para o <strong>Jogador 2</strong>.</p>
+        <button class="btn-vs" onclick="window.resumeGame1v1()">Sou o Jogador 2, Estou Pronto!</button>
     </div>
 
     <div id="screen-quiz" class="screen">
-        <div class="header">
+        <div class="header" id="quiz-header">
+            <span id="player-turn-display">Jogador 1</span>
             <span id="q-progress">Q: 1/10</span>
             <span id="time-display">25s</span>
         </div>
@@ -89,122 +142,214 @@
 
     <div id="screen-result" class="screen content">
         <h2>Fim de Jogo!</h2>
-        <p>Nick: <strong id="final-nick"></strong> | Pontos: <strong id="final-score" style="color: var(--accent); font-size: 1.4em;"></strong></p>
-        <p id="save-status" style="font-style: italic; color: gray;">Salvando no ranking...</p>
         
-        <h3>🏆 Top 10 Global</h3>
-        <div id="loading-ranking" class="loader"></div>
-        <table id="ranking-table">
-            <thead><tr><th>#</th><th>Nick</th><th>Pts</th><th>Data</th></tr></thead>
-            <tbody></tbody>
-        </table>
+        <div id="result-1v1-block" style="display:none;">
+            <div class="vs-score-board">
+                <div>
+                    <div id="res-p1-name">P1</div>
+                    <div id="res-p1-score" style="font-weight:bold; color:var(--accent)">0</div>
+                    <small id="res-p1-hits">0 acertos</small>
+                </div>
+                <div style="align-self:center; font-weight:bold;">VS</div>
+                <div>
+                    <div id="res-p2-name">P2</div>
+                    <div id="res-p2-score" style="font-weight:bold; color:var(--vs-color)">0</div>
+                    <small id="res-p2-hits">0 acertos</small>
+                </div>
+            </div>
+            <hr>
+            <div id="winner-display" class="winner-highlight"></div>
+        </div>
+
+        <div id="result-ranked-block" style="display:none;">
+            <p>Nick: <strong id="final-nick"></strong> | Pontos: <strong id="final-score" style="color: var(--accent); font-size: 1.4em;"></strong></p>
+            <p id="save-status" style="font-style: italic; color: gray;">Salvando no ranking...</p>
+            
+            <h3>🏆 Top 10 Global</h3>
+            <div id="loading-ranking" class="loader"></div>
+            <table id="ranking-table">
+                <thead><tr><th>#</th><th>Nick</th><th>Pts</th><th>Data</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
         <br>
-        <button class="btn-main" onclick="location.reload()">Jogar Novamente</button>
+        <button class="btn-main" onclick="location.reload()">Voltar ao Menu</button>
     </div>
 
 </div>
 
 <script type="module">
-    // --------------------------------------------------------------
-    // 1. CONFIGURAÇÃO DO FIREBASE
-    // COPIE AS CHAVES DO SITE DO FIREBASE E COLE DENTRO DAS ASPAS
-    // --------------------------------------------------------------
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
     const firebaseConfig = {
-    apiKey: "AIzaSyB8MomzCsIFp66mFbpvgW3q1CyYMjQWM0k",
-    authDomain: "mindspark-32fb7.firebaseapp.com",
-    projectId: "mindspark-32fb7",
-    storageBucket: "mindspark-32fb7.firebasestorage.app",
-    messagingSenderId: "140109681734",
-    appId: "1:140109681734:web:6b2bfd08dc37827f172647"
-  };
+        apiKey: "AIzaSyB8MomzCsIFp66mFbpvgW3q1CyYMjQWM0k",
+        authDomain: "mindspark-32fb7.firebaseapp.com",
+        projectId: "mindspark-32fb7",
+        storageBucket: "mindspark-32fb7.firebasestorage.app",
+        messagingSenderId: "140109681734",
+        appId: "1:140109681734:web:6b2bfd08dc37827f172647"
+    };
 
-    // Inicializa Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const TABLE_NAME = "ranking_quiz_logica"; // Nome da coleção no banco
+    const TABLE_NAME = "ranking_quiz_logica";
 
     // --------------------------------------------------------------
-    // 2. LÓGICA DO JOGO
+    // BANCO DE QUESTÕES
     // --------------------------------------------------------------
-    
-    const questions = [
-        {
-            text: "1. Considere a proposição p: 'O número 7 é maior que 10' (F). Qual o valor de ~p?",
-            options: ["Falso, pois 7 não é maior.", "Verdadeiro (negação inverte valor).", "Verdadeiro se fosse 17.", "Falso (negação de falso é falso)."],
-            correct: 1
-        },
-        {
-            text: "2. (P) Ter diploma (V) E (Q) Falar inglês (F). Qual o valor de P ∧ Q?",
-            options: ["Verdadeiro (basta a primeira).", "Falso (conjunção exige ambos V).", "Verdadeiro (sem contradição).", "Falso (só se ambos fossem F)."],
-            correct: 1
-        },
-        {
-            text: "3. 'Se passar (V), dou videogame (F)'. Valor da promessa (P → Q)?",
-            options: ["Verdadeiro (intenção vale).", "Falso (se ambos fossem F).", "Verdadeiro (independentes).", "Falso (Vera Fischer é Falsa)."],
-            correct: 3
-        },
-        {
-            text: "4. Equivalente lógica de 'Se chove, então me molho' (Contrapositiva):",
-            options: ["Se me molho, então chove.", "Não chove e eu me molho.", "Se não me molho, então não chove.", "Não me molho ou chove."],
-            correct: 2
-        },
-        {
-            text: "5. 'Se alarme toca -> ladrão entra'. Ladrão NÃO entrou. Conclusão (Modus Tollens)?",
-            options: ["Ladrão tentou entrar.", "Alarme tocou.", "Ladrão entrou e alarme falhou.", "Alarme não tocou."],
-            correct: 3
-        },
-        {
-            text: "6. Qual das frases NÃO é uma proposição lógica?",
-            options: ["A capital do Brasil é Brasília.", "3x5=12.", "O Sol não é uma estrela.", "'Estude para a prova amanhã!'"],
-            correct: 3
-        },
-        {
-            text: "7. Cliente reembolsado se (P) Cancelar OU (Q) Hotel lotado. Quando NÃO recebe (P ∨ Q é F)?",
-            options: ["Cancelada e hotel lotado.", "Não cancelada, mas lotado.", "Não cancelada E hotel não lotado.", "Cancelada e hotel não lotado."],
-            correct: 2
-        },
-        {
-            text: "8. Argumento inválido que parece lógico (ex: Vizinho é gato). Nome?",
-            options: ["Tautologia", "Modus Ponens", "Silogismo", "Sofisma (ou Falácia)"],
-            correct: 3
-        },
-        {
-            text: "9. Bicondicional (↔): 'Acesso se e somente se validado'. Quando é Verdade?",
-            options: ["P é V e Q é F.", "P é F e Q é V.", "Valores opostos.", "Mesmo valor lógico (ambos V ou F)."],
-            correct: 3
-        },
-        {
-            text: "10. Raciocínio que parte da Regra Geral para o Caso Particular:",
-            options: ["Indução", "Empirismo", "Dedução", "Tableau Semântico"],
-            correct: 2
-        }
+    const questionPool = [
+        { text: "1. ~p (negação) de uma proposição Falsa é:", options: ["Falsa", "Verdadeira", "Nula", "Incerta"], correct: 1 },
+        { text: "2. Para P^Q (Conjunção) ser V, é preciso:", options: ["P ser V", "Q ser V", "Ambos serem V", "Um deles ser V"], correct: 2 },
+        { text: "3. Promessa 'Se P então Q'. Só é mentira se:", options: ["P for V e Q for F", "Tudo for F", "Tudo for V", "P for F"], correct: 0 },
+        { text: "4. Equivalente a 'Se chove, molha' (Contrapositiva):", options: ["Se molha, chove", "Se não molha, não chove", "Não chove e molha", "Molha ou chove"], correct: 1 },
+        { text: "5. Modus Tollens: Se A->B e ~B (não B), então:", options: ["A acontece", "B acontece", "Nada se conclui", "~A (não A)"], correct: 3 },
+        { text: "6. Qual NÃO é proposição lógica?", options: ["2+2=5", "O céu é azul", "Feche a porta!", "O gato late"], correct: 2 },
+        { text: "7. Disjunção (P v Q) só é falsa quando:", options: ["P é F", "Q é F", "Ambos são F", "Ambos são V"], correct: 2 },
+        { text: "8. Argumento que parece certo mas é erro lógico:", options: ["Silogismo", "Falácia (Sofisma)", "Dedução", "Indução"], correct: 1 },
+        { text: "9. Bicondicional (↔) exige:", options: ["Valores iguais", "Valores opostos", "P verdadeiro", "Q falso"], correct: 0 },
+        { text: "10. Partir da Regra Geral para o Caso Específico:", options: ["Indução", "Dedução", "Abdução", "Intuição"], correct: 1 },
+        { text: "11. Uma proposição que é SEMPRE verdadeira chama-se:", options: ["Contradição", "Tautologia", "Contingência", "Falácia"], correct: 1 },
+        { text: "12. A Negação de 'Todo homem é mortal' é:", options: ["Nenhum homem é mortal", "Algum homem não é mortal", "Algum homem é mortal", "Todo homem é imortal"], correct: 1 },
+        { text: "13. Leis de Morgan: ~(P ^ Q) equivale a:", options: ["~P ^ ~Q", "~P v ~Q", "P v Q", "~P -> ~Q"], correct: 1 },
+        { text: "14. Se A é Verdadeiro, o que acontece com A v B?", options: ["Sempre Verdadeiro", "Depende de B", "Sempre Falso", "Vira Condicional"], correct: 0 },
+        { text: "15. Uma contradição é uma proposição que é:", options: ["Sempre Verdadeira", "Às vezes Falsa", "Sempre Falsa", "Indeterminada"], correct: 2 },
+        { text: "16. O princípio do 'Terceiro Excluído' diz que:", options: ["Uma coisa é ou não é", "Tudo é relativo", "Existem 3 opções", "A e B podem ser V"], correct: 0 },
+        { text: "17. 'P ou não P' (P v ~P) é exemplo de:", options: ["Contradição", "Tautologia", "Silogismo", "Paradoxo"], correct: 1 },
+        { text: "18. O Silogismo é uma forma de raciocínio:", options: ["Indutivo", "Dedutivo", "Abdutivo", "Intuitivo"], correct: 1 },
+        { text: "19. Se P->Q é verdadeiro e Q é falso, então P é:", options: ["Verdadeiro", "Falso", "Incerto", "Nulo"], correct: 1 },
+        { text: "20. 'Algum A é B' é uma proposição:", options: ["Universal Afirmativa", "Universal Negativa", "Particular Afirmativa", "Particular Negativa"], correct: 2 }
     ];
 
-    let state = { index: 0, score: 0, nick: "", time: 25, timer: null, busy: false };
-
-    // Disponibiliza funções para o HTML (por ser type=module)
-    window.startGame = async () => {
-        const nickInput = document.getElementById('nickname').value.trim();
-        if(!nickInput) return alert("Digite um Nickname!");
+    // Variáveis de estado
+    let questions = [];
+    let state = { 
+        mode: '', 
+        index: 0, 
+        time: 25, 
+        timer: null, 
+        busy: false,
+        intermissionShown: false, // <--- NOVA VARIÁVEL DE CONTROLE PARA CORRIGIR O BUG
         
+        // Dados Rankeada
+        nick: "", score: 0,
+        
+        // Dados 1v1
+        p1Name: "", p2Name: "",
+        p1Score: 0, p2Score: 0,
+        p1Hits: 0, p2Hits: 0
+    };
+
+    // --------------------------------------------------------------
+    // NAVEGAÇÃO
+    // --------------------------------------------------------------
+    window.goToRankedSetup = () => {
+        document.getElementById('screen-menu').classList.remove('active');
+        document.getElementById('screen-setup-ranked').classList.add('active');
+    };
+
+    window.goTo1v1Setup = () => {
+        document.getElementById('screen-menu').classList.remove('active');
+        document.getElementById('screen-setup-1v1').classList.add('active');
+    };
+
+    // --------------------------------------------------------------
+    // INICIAR MODOS
+    // --------------------------------------------------------------
+    
+    window.startRanked = () => {
+        const nickInput = document.getElementById('nick-ranked').value.trim();
+        if(!nickInput) return alert("Digite um Nickname!");
+
+        state.mode = 'ranked';
         state.nick = nickInput;
         state.score = 0;
         state.index = 0;
-        
-        document.getElementById('screen-start').classList.remove('active');
+
+        questions = [...questionPool].sort(() => Math.random() - 0.5).slice(0, 10);
+
+        document.getElementById('screen-setup-ranked').classList.remove('active');
         document.getElementById('screen-quiz').classList.add('active');
+        
+        document.getElementById('player-turn-display').innerText = state.nick;
+        document.getElementById('quiz-header').style.backgroundColor = "var(--primary)";
+        
         loadQuestion();
     };
 
+    window.start1v1 = () => {
+        const p1 = document.getElementById('nick-p1').value.trim() || "Jogador 1";
+        const p2 = document.getElementById('nick-p2').value.trim() || "Jogador 2";
+
+        state.mode = '1v1';
+        state.p1Name = p1;
+        state.p2Name = p2;
+        state.p1Score = 0; state.p2Score = 0;
+        state.p1Hits = 0; state.p2Hits = 0;
+        state.index = 0;
+        state.intermissionShown = false; // <--- RESETANDO A VARIÁVEL AQUI
+
+        questions = [...questionPool].sort(() => Math.random() - 0.5).slice(0, 10);
+
+        document.getElementById('screen-setup-1v1').classList.remove('active');
+        document.getElementById('screen-quiz').classList.add('active');
+
+        updateTurnDisplay();
+        loadQuestion();
+    };
+
+    function updateTurnDisplay() {
+        const display = document.getElementById('player-turn-display');
+        const header = document.getElementById('quiz-header');
+        
+        if (state.index < 5) {
+            display.innerText = "Vez de: " + state.p1Name;
+            header.style.backgroundColor = "var(--accent)";
+        } else {
+            display.innerText = "Vez de: " + state.p2Name;
+            header.style.backgroundColor = "var(--vs-color)";
+        }
+    }
+
+    window.resumeGame1v1 = () => {
+        document.getElementById('screen-intermission').classList.remove('active');
+        document.getElementById('screen-quiz').classList.add('active');
+        
+        // Aqui não precisamos chamar updateTurnDisplay nem loadQuestion manualmente,
+        // vamos deixar o fluxo seguir, mas precisamos garantir que o loop não ocorra.
+        updateTurnDisplay();
+        loadQuestion(); 
+    }
+
+    // --------------------------------------------------------------
+    // LÓGICA DO QUIZ
+    // --------------------------------------------------------------
+
     function loadQuestion() {
+        // CORREÇÃO DO BUG AQUI:
+        // Verifica se é hora de pausar E se já não pausamos antes
+        if(state.mode === '1v1' && state.index === 5 && !state.intermissionShown) {
+            
+            state.intermissionShown = true; // Marca que já pausou
+            
+            document.getElementById('screen-quiz').classList.remove('active');
+            document.getElementById('screen-intermission').classList.add('active');
+            
+            clearInterval(state.timer); // Garante que o tempo pare
+            return; // Para a execução
+        }
+
         resetTimer();
         const q = questions[state.index];
         
         document.getElementById('question-text').innerText = q.text;
-        document.getElementById('q-progress').innerText = `Q: ${state.index + 1}/${questions.length}`;
+        
+        let displayIndex = state.index + 1;
+        if(state.mode === '1v1' && state.index >= 5) displayIndex -= 5;
+        let totalQ = (state.mode === '1v1') ? 5 : 10;
+
+        document.getElementById('q-progress').innerText = `Q: ${displayIndex}/${totalQ}`;
         
         const container = document.getElementById('options-container');
         container.innerHTML = "";
@@ -227,12 +372,11 @@
 
         const correct = questions[state.index].correct;
         const feedback = document.getElementById('feedback-area');
+        const isCorrect = (idx === correct);
 
-        if(idx === correct) {
+        if(isCorrect) {
             btn.classList.add('correct');
-            const points = 100 + (state.time * 10);
-            state.score += points;
-            feedback.innerText = `Correto! +${points} pts`;
+            feedback.innerText = "Correto!";
             feedback.style.color = "#27ae60";
         } else {
             btn.classList.add('wrong');
@@ -242,9 +386,23 @@
             feedback.style.color = "#c0392b";
         }
 
+        const points = isCorrect ? (100 + (state.time * 10)) : 0;
+        
+        if(state.mode === 'ranked') {
+            state.score += points;
+        } else {
+            if(state.index < 5) {
+                state.p1Score += points;
+                if(isCorrect) state.p1Hits++;
+            } else {
+                state.p2Score += points;
+                if(isCorrect) state.p2Hits++;
+            }
+        }
+
         setTimeout(() => {
             state.index++;
-            if(state.index < questions.length) {
+            if(state.index < 10) {
                 loadQuestion();
             } else {
                 finishGame();
@@ -282,7 +440,7 @@
         
         setTimeout(() => {
             state.index++;
-            if(state.index < questions.length) loadQuestion();
+            if(state.index < 10) loadQuestion();
             else finishGame();
         }, 2000);
     }
@@ -293,16 +451,39 @@
         document.getElementById('screen-quiz').classList.remove('active');
         document.getElementById('screen-result').classList.add('active');
         
-        document.getElementById('final-nick').innerText = state.nick;
-        document.getElementById('final-score').innerText = state.score;
+        const rankedBlock = document.getElementById('result-ranked-block');
+        const vsBlock = document.getElementById('result-1v1-block');
 
-        // Salvar no Firebase
-        await saveScore(state.nick, state.score);
+        if(state.mode === 'ranked') {
+            rankedBlock.style.display = 'block';
+            vsBlock.style.display = 'none';
+            
+            document.getElementById('final-nick').innerText = state.nick;
+            document.getElementById('final-score').innerText = state.score;
+            await saveScore(state.nick, state.score);
+
+        } else {
+            rankedBlock.style.display = 'none';
+            vsBlock.style.display = 'block';
+
+            document.getElementById('res-p1-name').innerText = state.p1Name;
+            document.getElementById('res-p1-score').innerText = state.p1Score;
+            document.getElementById('res-p1-hits').innerText = `${state.p1Hits}/5 acertos`;
+
+            document.getElementById('res-p2-name').innerText = state.p2Name;
+            document.getElementById('res-p2-score').innerText = state.p2Score;
+            document.getElementById('res-p2-hits').innerText = `${state.p2Hits}/5 acertos`;
+
+            const winnerDiv = document.getElementById('winner-display');
+            if(state.p1Score > state.p2Score) {
+                winnerDiv.innerText = `🏆 Vencedor: ${state.p1Name}!`;
+            } else if (state.p2Score > state.p1Score) {
+                winnerDiv.innerText = `🏆 Vencedor: ${state.p2Name}!`;
+            } else {
+                winnerDiv.innerText = `🤝 Empate!`;
+            }
+        }
     }
-
-    // --------------------------------------------------------------
-    // 3. FUNÇÕES DE REDE (FIREBASE)
-    // --------------------------------------------------------------
 
     async function saveScore(nick, score) {
         const statusMsg = document.getElementById('save-status');
@@ -310,62 +491,45 @@
             await addDoc(collection(db, TABLE_NAME), {
                 nick: nick,
                 score: score,
-                date: new Date() // Salva a data do servidor
+                date: new Date()
             });
             statusMsg.innerText = "Pontuação salva no Ranking Global! 🌎";
             statusMsg.style.color = "green";
-            
-            // Após salvar, carrega o ranking
             loadRanking();
         } catch (e) {
             console.error("Erro ao salvar: ", e);
-            statusMsg.innerText = "Erro ao conectar com o servidor. Verifique sua internet.";
-            statusMsg.style.color = "red";
+            statusMsg.innerText = "Erro ao conectar (mas você jogou bem!)";
         }
     }
 
     async function loadRanking() {
         const loader = document.getElementById('loading-ranking');
         const tbody = document.querySelector('#ranking-table tbody');
-        
         loader.style.display = "block";
-        tbody.innerHTML = ""; // Limpa tabela
+        tbody.innerHTML = ""; 
 
         try {
-            // Busca top 10 ordenado por score decrescente
             const q = query(collection(db, TABLE_NAME), orderBy("score", "desc"), limit(10));
             const querySnapshot = await getDocs(q);
-
             let position = 1;
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                
-                // Formata a data simples
                 let dateStr = "";
                 if(data.date && data.date.toDate) {
                     dateStr = data.date.toDate().toLocaleDateString('pt-BR');
                 }
-
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${position}º</td>
-                    <td>${data.nick}</td>
-                    <td><strong>${data.score}</strong></td>
-                    <td style="font-size:0.8em; color:#666;">${dateStr}</td>
-                `;
+                tr.innerHTML = `<td>${position}º</td><td>${data.nick}</td><td><strong>${data.score}</strong></td><td style="font-size:0.8em; color:#666;">${dateStr}</td>`;
                 tbody.appendChild(tr);
                 position++;
             });
         } catch (e) {
-            console.error("Erro ao ler ranking:", e);
-            tbody.innerHTML = "<tr><td colspan='4'>Erro ao carregar ranking. Verifique as chaves da API.</td></tr>";
+            console.error(e);
+            tbody.innerHTML = "<tr><td colspan='4'>Erro ao carregar ranking.</td></tr>";
         } finally {
             loader.style.display = "none";
         }
     }
-    
-    // Carrega o ranking assim que abre a tela (para inspirar) - Opcional
-    // loadRanking(); 
 </script>
 
 </body>
