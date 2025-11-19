@@ -131,16 +131,56 @@
     // --------------------------------------------------------------
     
     const questions = [
-        { text: "1. ~p (negação) de uma proposição Falsa é:", options: ["Falsa", "Verdadeira", "Nula", "Incerta"], correct: 1 },
-        { text: "2. Para P^Q (Conjunção) ser V, é preciso:", options: ["P ser V", "Q ser V", "Ambos serem V", "Um deles ser V"], correct: 2 },
-        { text: "3. Promessa 'Se P então Q'. Só é mentira se:", options: ["P for V e Q for F", "Tudo for F", "Tudo for V", "P for F"], correct: 0 },
-        { text: "4. Equivalente a 'Se chove, molha' (Contrapositiva):", options: ["Se molha, chove", "Se não molha, não chove", "Não chove e molha", "Molha ou chove"], correct: 1 },
-        { text: "5. Modus Tollens: Se A->B e ~B (não B), então:", options: ["A acontece", "B acontece", "Nada se conclui", "~A (não A)"], correct: 3 },
-        { text: "6. Qual NÃO é proposição lógica?", options: ["2+2=5", "O céu é azul", "Feche a porta!", "O gato late"], correct: 2 },
-        { text: "7. Disjunção (P v Q) só é falsa quando:", options: ["P é F", "Q é F", "Ambos são F", "Ambos são V"], correct: 2 },
-        { text: "8. Argumento que parece certo mas é erro lógico:", options: ["Silogismo", "Falácia (Sofisma)", "Dedução", "Indução"], correct: 1 },
-        { text: "9. Bicondicional (↔) exige:", options: ["Valores iguais", "Valores opostos", "P verdadeiro", "Q falso"], correct: 0 },
-        { text: "10. Partir da Regra Geral para o Caso Específico:", options: ["Indução", "Dedução", "Abdução", "Intuição"], correct: 1 }
+        {
+            text: "1. Considere a proposição p: 'O número 7 é maior que 10' (F). Qual o valor de ~p?",
+            options: ["Falso, pois 7 não é maior.", "Verdadeiro (negação inverte valor).", "Verdadeiro se fosse 17.", "Falso (negação de falso é falso)."],
+            correct: 1
+        },
+        {
+            text: "2. (P) Ter diploma (V) E (Q) Falar inglês (F). Qual o valor de P ∧ Q?",
+            options: ["Verdadeiro (basta a primeira).", "Falso (conjunção exige ambos V).", "Verdadeiro (sem contradição).", "Falso (só se ambos fossem F)."],
+            correct: 1
+        },
+        {
+            text: "3. 'Se passar (V), dou videogame (F)'. Valor da promessa (P → Q)?",
+            options: ["Verdadeiro (intenção vale).", "Falso (se ambos fossem F).", "Verdadeiro (independentes).", "Falso (Vera Fischer é Falsa)."],
+            correct: 3
+        },
+        {
+            text: "4. Equivalente lógica de 'Se chove, então me molho' (Contrapositiva):",
+            options: ["Se me molho, então chove.", "Não chove e eu me molho.", "Se não me molho, então não chove.", "Não me molho ou chove."],
+            correct: 2
+        },
+        {
+            text: "5. 'Se alarme toca -> ladrão entra'. Ladrão NÃO entrou. Conclusão (Modus Tollens)?",
+            options: ["Ladrão tentou entrar.", "Alarme tocou.", "Ladrão entrou e alarme falhou.", "Alarme não tocou."],
+            correct: 3
+        },
+        {
+            text: "6. Qual das frases NÃO é uma proposição lógica?",
+            options: ["A capital do Brasil é Brasília.", "3x5=12.", "O Sol não é uma estrela.", "'Estude para a prova amanhã!'"],
+            correct: 3
+        },
+        {
+            text: "7. Cliente reembolsado se (P) Cancelar OU (Q) Hotel lotado. Quando NÃO recebe (P ∨ Q é F)?",
+            options: ["Cancelada e hotel lotado.", "Não cancelada, mas lotado.", "Não cancelada E hotel não lotado.", "Cancelada e hotel não lotado."],
+            correct: 2
+        },
+        {
+            text: "8. Argumento inválido que parece lógico (ex: Vizinho é gato). Nome?",
+            options: ["Tautologia", "Modus Ponens", "Silogismo", "Sofisma (ou Falácia)"],
+            correct: 3
+        },
+        {
+            text: "9. Bicondicional (↔): 'Acesso se e somente se validado'. Quando é Verdade?",
+            options: ["P é V e Q é F.", "P é F e Q é V.", "Valores opostos.", "Mesmo valor lógico (ambos V ou F)."],
+            correct: 3
+        },
+        {
+            text: "10. Raciocínio que parte da Regra Geral para o Caso Particular:",
+            options: ["Indução", "Empirismo", "Dedução", "Tableau Semântico"],
+            correct: 2
+        }
     ];
 
     let state = { index: 0, score: 0, nick: "", time: 25, timer: null, busy: false };
