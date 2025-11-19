@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Lógica Global</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #2980b9;
+            --correct: #27ae60;
+            --wrong: #c0392b;
+            --light: #ecf0f1;
+        }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #2c3e50;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            width: 95%;
+            max-width: 600px;
+            overflow: hidden;
+            position: relative;
+        }
+        .header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .timer-bar { height: 5px; background-color: var(--accent); width: 100%; transition: width 1s linear; }
+        .content { padding: 20px; }
+        .screen { display: none; animation: fadeIn 0.5s; }
+        .active { display: block; }
+        input[type="text"] { width: 100%; padding: 12px; margin: 15px 0; border: 2px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 16px;}
+        button { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: 0.2s; }
+        .btn-main { background-color: var(--accent); color: white; }
+        .btn-main:hover { background-color: #1f6391; }
+        .btn-option { background-color: var(--light); color: #333; text-align: left; margin-bottom: 8px; }
+        .btn-option:hover:not([disabled]) { background-color: #dce4e6; transform: translateX(5px); }
+        .btn-option.correct { background-color: var(--correct); color: white; }
+        .btn-option.wrong { background-color: var(--wrong); color: white; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
+        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: var(--accent); color: white; }
+        
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; display: none; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div id="screen-start" class="screen active content">
+        <h1>🌎 Quiz Global de Lógica</h1>
+        <p>Teste sua lógica. Seu resultado aparecerá no Ranking Mundial!</p>
+        <label>Seu Nickname:</label>
+        <input type="text" id="nickname" placeholder="Ex: MestreDosCodigos" maxlength="15">
+        <button class="btn-main" onclick="window.startGame()">Começar Desafio</button>
+    </div>
+
+    <div id="screen-quiz" class="screen">
+        <div class="header">
+            <span id="q-progress">Q: 1/10</span>
+            <span id="time-display">25s</span>
+        </div>
+        <div class="timer-bar" id="timer-bar"></div>
+        <div class="content">
+            <div id="question-text" style="font-size: 1.1em; font-weight: bold; margin-bottom: 20px;">...</div>
+            <div id="options-container"></div>
+            <div id="feedback-area" style="min-height: 20px; margin-top: 10px; font-weight: bold;"></div>
+        </div>
+    </div>
+
+    <div id="screen-result" class="screen content">
+        <h2>Fim de Jogo!</h2>
+        <p>Nick: <strong id="final-nick"></strong> | Pontos: <strong id="final-score" style="color: var(--accent); font-size: 1.4em;"></strong></p>
+        <p id="save-status" style="font-style: italic; color: gray;">Salvando no ranking...</p>
+        
+        <h3>🏆 Top 10 Global</h3>
+        <div id="loading-ranking" class="loader"></div>
+        <table id="ranking-table">
+            <thead><tr><th>#</th><th>Nick</th><th>Pts</th><th>Data</th></tr></thead>
+            <tbody></tbody>
+        </table>
+        <br>
+        <button class="btn-main" onclick="location.reload()">Jogar Novamente</button>
+    </div>
+
+</div>
+
+<script type="module">
+    // --------------------------------------------------------------
+    // 1. CONFIGURAÇÃO DO FIREBASE
+    // COPIE AS CHAVES DO SITE DO FIREBASE E COLE DENTRO DAS ASPAS
+    // --------------------------------------------------------------
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+    apiKey: "AIzaSyB8MomzCsIFp66mFbpvgW3q1CyYMjQWM0k",
+    authDomain: "mindspark-32fb7.firebaseapp.com",
+    projectId: "mindspark-32fb7",
+    storageBucket: "mindspark-32fb7.firebasestorage.app",
+    messagingSenderId: "140109681734",
+    appId: "1:140109681734:web:6b2bfd08dc37827f172647"
+  };
+
+    // Inicializa Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const TABLE_NAME = "ranking_quiz_logica"; // Nome da coleção no banco
+
+    // --------------------------------------------------------------
+    // 2. LÓGICA DO JOGO
+    // --------------------------------------------------------------
+    
+    const questions = [
+        { text: "1. ~p (negação) de uma proposição Falsa é:", options: ["Falsa", "Verdadeira", "Nula", "Incerta"], correct: 1 },
+        { text: "2. Para P^Q (Conjunção) ser V, é preciso:", options: ["P ser V", "Q ser V", "Ambos serem V", "Um deles ser V"], correct: 2 },
+        { text: "3. Promessa 'Se P então Q'. Só é mentira se:", options: ["P for V e Q for F", "Tudo for F", "Tudo for V", "P for F"], correct: 0 },
+        { text: "4. Equivalente a 'Se chove, molha' (Contrapositiva):", options: ["Se molha, chove", "Se não molha, não chove", "Não chove e molha", "Molha ou chove"], correct: 1 },
+        { text: "5. Modus Tollens: Se A->B e ~B (não B), então:", options: ["A acontece", "B acontece", "Nada se conclui", "~A (não A)"], correct: 3 },
+        { text: "6. Qual NÃO é proposição lógica?", options: ["2+2=5", "O céu é azul", "Feche a porta!", "O gato late"], correct: 2 },
+        { text: "7. Disjunção (P v Q) só é falsa quando:", options: ["P é F", "Q é F", "Ambos são F", "Ambos são V"], correct: 2 },
+        { text: "8. Argumento que parece certo mas é erro lógico:", options: ["Silogismo", "Falácia (Sofisma)", "Dedução", "Indução"], correct: 1 },
+        { text: "9. Bicondicional (↔) exige:", options: ["Valores iguais", "Valores opostos", "P verdadeiro", "Q falso"], correct: 0 },
+        { text: "10. Partir da Regra Geral para o Caso Específico:", options: ["Indução", "Dedução", "Abdução", "Intuição"], correct: 1 }
+    ];
+
+    let state = { index: 0, score: 0, nick: "", time: 25, timer: null, busy: false };
+
+    // Disponibiliza funções para o HTML (por ser type=module)
+    window.startGame = async () => {
+        const nickInput = document.getElementById('nickname').value.trim();
+        if(!nickInput) return alert("Digite um Nickname!");
+        
+        state.nick = nickInput;
+        state.score = 0;
+        state.index = 0;
+        
+        document.getElementById('screen-start').classList.remove('active');
+        document.getElementById('screen-quiz').classList.add('active');
+        loadQuestion();
+    };
+
+    function loadQuestion() {
+        resetTimer();
+        const q = questions[state.index];
+        
+        document.getElementById('question-text').innerText = q.text;
+        document.getElementById('q-progress').innerText = `Q: ${state.index + 1}/${questions.length}`;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = "";
+        
+        q.options.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-option';
+            btn.innerText = opt;
+            btn.onclick = () => selectAnswer(idx, btn);
+            container.appendChild(btn);
+        });
+
+        startTimer();
+    }
+
+    function selectAnswer(idx, btn) {
+        if(state.busy) return;
+        state.busy = true;
+        clearInterval(state.timer);
+
+        const correct = questions[state.index].correct;
+        const feedback = document.getElementById('feedback-area');
+
+        if(idx === correct) {
+            btn.classList.add('correct');
+            const points = 100 + (state.time * 10);
+            state.score += points;
+            feedback.innerText = `Correto! +${points} pts`;
+            feedback.style.color = "#27ae60";
+        } else {
+            btn.classList.add('wrong');
+            const all = document.getElementById('options-container').children;
+            all[correct].classList.add('correct');
+            feedback.innerText = "Errado!";
+            feedback.style.color = "#c0392b";
+        }
+
+        setTimeout(() => {
+            state.index++;
+            if(state.index < questions.length) {
+                loadQuestion();
+            } else {
+                finishGame();
+            }
+        }, 2000);
+    }
+
+    function startTimer() {
+        state.time = 25;
+        const display = document.getElementById('time-display');
+        const bar = document.getElementById('timer-bar');
+        display.innerText = "25s";
+        bar.style.width = "100%";
+        state.busy = false;
+        document.getElementById('feedback-area').innerText = "";
+
+        state.timer = setInterval(() => {
+            state.time--;
+            display.innerText = state.time + "s";
+            bar.style.width = (state.time / 25 * 100) + "%";
+            
+            if(state.time <= 0) {
+                clearInterval(state.timer);
+                timeOut();
+            }
+        }, 1000);
+    }
+
+    function timeOut() {
+        state.busy = true;
+        const correct = questions[state.index].correct;
+        const all = document.getElementById('options-container').children;
+        all[correct].classList.add('correct');
+        document.getElementById('feedback-area').innerText = "Tempo Esgotado!";
+        
+        setTimeout(() => {
+            state.index++;
+            if(state.index < questions.length) loadQuestion();
+            else finishGame();
+        }, 2000);
+    }
+
+    function resetTimer() { clearInterval(state.timer); }
+
+    async function finishGame() {
+        document.getElementById('screen-quiz').classList.remove('active');
+        document.getElementById('screen-result').classList.add('active');
+        
+        document.getElementById('final-nick').innerText = state.nick;
+        document.getElementById('final-score').innerText = state.score;
+
+        // Salvar no Firebase
+        await saveScore(state.nick, state.score);
+    }
+
+    // --------------------------------------------------------------
+    // 3. FUNÇÕES DE REDE (FIREBASE)
+    // --------------------------------------------------------------
+
+    async function saveScore(nick, score) {
+        const statusMsg = document.getElementById('save-status');
+        try {
+            await addDoc(collection(db, TABLE_NAME), {
+                nick: nick,
+                score: score,
+                date: new Date() // Salva a data do servidor
+            });
+            statusMsg.innerText = "Pontuação salva no Ranking Global! 🌎";
+            statusMsg.style.color = "green";
+            
+            // Após salvar, carrega o ranking
+            loadRanking();
+        } catch (e) {
+            console.error("Erro ao salvar: ", e);
+            statusMsg.innerText = "Erro ao conectar com o servidor. Verifique sua internet.";
+            statusMsg.style.color = "red";
+        }
+    }
+
+    async function loadRanking() {
+        const loader = document.getElementById('loading-ranking');
+        const tbody = document.querySelector('#ranking-table tbody');
+        
+        loader.style.display = "block";
+        tbody.innerHTML = ""; // Limpa tabela
+
+        try {
+            // Busca top 10 ordenado por score decrescente
+            const q = query(collection(db, TABLE_NAME), orderBy("score", "desc"), limit(10));
+            const querySnapshot = await getDocs(q);
+
+            let position = 1;
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                
+                // Formata a data simples
+                let dateStr = "";
+                if(data.date && data.date.toDate) {
+                    dateStr = data.date.toDate().toLocaleDateString('pt-BR');
+                }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${position}º</td>
+                    <td>${data.nick}</td>
+                    <td><strong>${data.score}</strong></td>
+                    <td style="font-size:0.8em; color:#666;">${dateStr}</td>
+                `;
+                tbody.appendChild(tr);
+                position++;
+            });
+        } catch (e) {
+            console.error("Erro ao ler ranking:", e);
+            tbody.innerHTML = "<tr><td colspan='4'>Erro ao carregar ranking. Verifique as chaves da API.</td></tr>";
+        } finally {
+            loader.style.display = "none";
+        }
+    }
+    
+    // Carrega o ranking assim que abre a tela (para inspirar) - Opcional
+    // loadRanking(); 
+</script>
+
+</body>
+</html>
