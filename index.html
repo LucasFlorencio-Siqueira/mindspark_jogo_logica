@@ -414,23 +414,27 @@
         const data = docSnapshot.data();
         if(!data) return;
 
-        // --- CORREÇÃO AQUI ---
-        // Só inicia se o status for 'playing' E se a nossa trava for falsa
+        // Início do Jogo (com a trava de segurança que criamos antes)
         if (data.status === "playing" && !onlineGameStarted) {
-            onlineGameStarted = true; // Trava imediatamente para não entrar de novo
+            onlineGameStarted = true;
             startOnlineGame(data);
         }
-        // ---------------------
 
-        // Atualizar Pontos em Tempo Real (Visual)
+        // Atualização de Pontos e Checagem de Fim de Jogo
         if (state.mode === 'online') {
             state.p1Score = data.host.score;
             state.p2Score = data.guest.score;
-            // Se estivermos na tela de resultado, atualiza a UI
+
+            // Se eu já estou na tela de resultados, atualizo os números ao vivo
             if(document.getElementById('screen-result').classList.contains('active')){
-                document.getElementById('res-p1-score').innerText = state.p1Score;
-                document.getElementById('res-p2-score').innerText = state.p2Score;
-                determineWinner(state.p1Score, state.p2Score, data.host.name, data.guest.name);
+                showVsResults(data.host.name, data.host.score, "-", data.guest.name, data.guest.score, "-");
+                
+                // --- A MÁGICA ACONTECE AQUI ---
+                // Verifica se AMBOS terminaram
+                if (data.host.finished && data.guest.finished) {
+                    document.getElementById('online-waiting-msg').style.display = "none"; // Esconde "Aguardando..."
+                    determineWinner(data.host.score, data.guest.score, data.host.name, data.guest.name);
+                }
             }
         }
     });
@@ -630,39 +634,53 @@
     // --------------------------------------------------------------
 
     async function finishGame() {
-        document.getElementById('screen-quiz').classList.remove('active');
-        document.getElementById('screen-result').classList.add('active');
-        
-        const rankedBlock = document.getElementById('result-ranked-block');
-        const vsBlock = document.getElementById('result-vs-block');
+    // 1. Esconde o Quiz e mostra a tela de resultado
+    document.getElementById('screen-quiz').classList.remove('active');
+    document.getElementById('screen-result').classList.add('active');
+    
+    const rankedBlock = document.getElementById('result-ranked-block');
+    const vsBlock = document.getElementById('result-vs-block');
 
-        // RANKEADA
-        if(state.mode === 'ranked') {
-            rankedBlock.style.display = 'block';
-            vsBlock.style.display = 'none';
-            document.getElementById('final-nick').innerText = state.nick;
-            document.getElementById('final-score').innerText = state.score;
-            await saveScore(state.nick, state.score);
-        } 
-        // 1V1 LOCAL
-        else if (state.mode === '1v1') {
-            rankedBlock.style.display = 'none';
-            vsBlock.style.display = 'block';
-            showVsResults(state.p1Name, state.p1Score, state.p1Hits, state.p2Name, state.p2Score, state.p2Hits);
-            determineWinner(state.p1Score, state.p2Score, state.p1Name, state.p2Name);
-        }
-        // ONLINE
-        else if (state.mode === 'online') {
-            rankedBlock.style.display = 'none';
-            vsBlock.style.display = 'block';
-            document.getElementById('online-waiting-msg').style.display = "block";
-            
-            // Pega os dados mais recentes do listener
-            // Nota: hits não são sincronizados no online simplificado, apenas score
-            showVsResults(state.p1Name, state.p1Score, "-", state.p2Name, state.p2Score, "-");
-            determineWinner(state.p1Score, state.p2Score, state.p1Name, state.p2Name);
-        }
+    // --- MODO RANKEADA ---
+    if(state.mode === 'ranked') {
+        rankedBlock.style.display = 'block';
+        vsBlock.style.display = 'none';
+        document.getElementById('final-nick').innerText = state.nick;
+        document.getElementById('final-score').innerText = state.score;
+        await saveScore(state.nick, state.score);
+    } 
+    // --- MODO 1V1 LOCAL ---
+    else if (state.mode === '1v1') {
+        rankedBlock.style.display = 'none';
+        vsBlock.style.display = 'block';
+        showVsResults(state.p1Name, state.p1Score, state.p1Hits, state.p2Name, state.p2Score, state.p2Hits);
+        determineWinner(state.p1Score, state.p2Score, state.p1Name, state.p2Name);
     }
+    // --- MODO ONLINE (AQUI ESTÁ A MUDANÇA) ---
+    else if (state.mode === 'online') {
+        rankedBlock.style.display = 'none';
+        vsBlock.style.display = 'block';
+        
+        // Esconde quem ganhou por enquanto
+        document.getElementById('winner-display').innerText = ""; 
+        
+        // Mostra mensagem de "Aguardando..."
+        const waitMsg = document.getElementById('online-waiting-msg');
+        waitMsg.style.display = "block";
+        waitMsg.innerText = "Aguardando oponente terminar...";
+
+        // Atualiza a tela com os pontos atuais (parciais)
+        showVsResults(state.p1Name, state.p1Score, "-", state.p2Name, state.p2Score, "-");
+
+        // AVISA O FIREBASE QUE EU TERMINEI
+        const roomRef = doc(db, ROOMS_COLLECTION, currentRoomId);
+        const fieldToUpdate = (myPlayerSlot === "host") ? "host.finished" : "guest.finished";
+        
+        await updateDoc(roomRef, {
+            [fieldToUpdate]: true
+        });
+    }
+}
 
     function showVsResults(n1, s1, h1, n2, s2, h2) {
         document.getElementById('res-p1-name').innerText = n1;
