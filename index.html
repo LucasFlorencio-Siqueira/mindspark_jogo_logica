@@ -73,22 +73,37 @@
         .btn-online { background-color: var(--online-color); color: white; }
         .btn-online:hover { background-color: #d35400; }
 
-        .btn-option { background-color: var(--light); color: #333; text-align: left; margin-bottom: 10px; font-weight: normal; border-left: 5px solid transparent; }
-        .btn-option:hover:not([disabled]) { background-color: #dce4e6; transform: translateX(3px); }
-        /* Procure por estas linhas no seu <style> e substitua por isso: */
-
-        .btn-option.correct { 
-            background-color: var(--correct) !important; 
-            color: white; 
-            border-left-color: #1e8449; 
-            pointer-events: none; /* <--- O SEGREDO: Remove o hover instantaneamente */
+        /* Botão Padrão */
+.btn-option { 
+    background-color: var(--light); 
+    color: #333; 
+    text-align: left; 
+    margin-bottom: 10px; 
+    font-weight: normal; 
+    border-left: 5px solid transparent; 
+    transition: transform 0.1s; /* Removi transition de background para a cor entrar na hora */
 }
 
-        .btn-option.wrong { 
-         background-color: var(--wrong) !important; 
-        color: white; 
-        border-left-color: #922b21; 
-        pointer-events: none; /* <--- O SEGREDO: Remove o hover instantaneamente */
+/* Hover (só funciona se NÃO tiver a classe correct ou wrong) */
+.btn-option:hover:not(.correct):not(.wrong) { 
+    background-color: #dce4e6; 
+    transform: translateX(3px); 
+}
+
+/* ACERTO - Prioridade Máxima */
+.btn-option.correct { 
+    background-color: var(--correct) !important; 
+    color: white !important; 
+    border-left-color: #1e8449 !important; 
+    pointer-events: none; /* Impede novos cliques e remove o estado de hover */
+}
+
+/* ERRO - Prioridade Máxima */
+.btn-option.wrong { 
+    background-color: var(--wrong) !important; 
+    color: white !important; 
+    border-left-color: #922b21 !important; 
+    pointer-events: none; /* Impede novos cliques e remove o estado de hover */
 }
         
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
