@@ -201,25 +201,44 @@
     // --------------------------------------------------------------
     const questionPool = [
         { text: "1. ~p (negação) de uma proposição Falsa é:", options: ["Falsa", "Verdadeira", "Nula", "Incerta"], correct: 1 },
-        { text: "2. Para P^Q (Conjunção) ser V, é preciso:", options: ["P ser V", "Q ser V", "Ambos serem V", "Um deles ser V"], correct: 2 },
-        { text: "3. Promessa 'Se P então Q'. Só é mentira se:", options: ["P for V e Q for F", "Tudo for F", "Tudo for V", "P for F"], correct: 0 },
-        { text: "4. Equivalente a 'Se chove, molha' (Contrapositiva):", options: ["Se molha, chove", "Se não molha, não chove", "Não chove e molha", "Molha ou chove"], correct: 1 },
-        { text: "5. Modus Tollens: Se A->B e ~B (não B), então:", options: ["A acontece", "B acontece", "Nada se conclui", "~A (não A)"], correct: 3 },
-        { text: "6. Qual NÃO é proposição lógica?", options: ["2+2=5", "O céu é azul", "Feche a porta!", "O gato late"], correct: 2 },
-        { text: "7. Disjunção (P v Q) só é falsa quando:", options: ["P é F", "Q é F", "Ambos são F", "Ambos são V"], correct: 2 },
-        { text: "8. Argumento que parece certo mas é erro lógico:", options: ["Silogismo", "Falácia (Sofisma)", "Dedução", "Indução"], correct: 1 },
-        { text: "9. Bicondicional (↔) exige:", options: ["Valores iguais", "Valores opostos", "P verdadeiro", "Q falso"], correct: 0 },
-        { text: "10. Partir da Regra Geral para o Caso Específico:", options: ["Indução", "Dedução", "Abdução", "Intuição"], correct: 1 },
-        { text: "11. Uma proposição que é SEMPRE verdadeira chama-se:", options: ["Contradição", "Tautologia", "Contingência", "Falácia"], correct: 1 },
-        { text: "12. A Negação de 'Todo homem é mortal' é:", options: ["Nenhum homem é mortal", "Algum homem não é mortal", "Algum homem é mortal", "Todo homem é imortal"], correct: 1 },
-        { text: "13. Leis de Morgan: ~(P ^ Q) equivale a:", options: ["~P ^ ~Q", "~P v ~Q", "P v Q", "~P -> ~Q"], correct: 1 },
-        { text: "14. Se A é Verdadeiro, o que acontece com A v B?", options: ["Sempre Verdadeiro", "Depende de B", "Sempre Falso", "Vira Condicional"], correct: 0 },
-        { text: "15. Uma contradição é uma proposição que é:", options: ["Sempre Verdadeira", "Às vezes Falsa", "Sempre Falsa", "Indeterminada"], correct: 2 },
-        { text: "16. O princípio do 'Terceiro Excluído' diz que:", options: ["Uma coisa é ou não é", "Tudo é relativo", "Existem 3 opções", "A e B podem ser V"], correct: 0 },
-        { text: "17. 'P ou não P' (P v ~P) é exemplo de:", options: ["Contradição", "Tautologia", "Silogismo", "Paradoxo"], correct: 1 },
-        { text: "18. O Silogismo é uma forma de raciocínio:", options: ["Indutivo", "Dedutivo", "Abdutivo", "Intuitivo"], correct: 1 },
-        { text: "19. Se P->Q é verdadeiro e Q é falso, então P é:", options: ["Verdadeiro", "Falso", "Incerto", "Nulo"], correct: 1 },
-        { text: "20. 'Algum A é B' é uma proposição:", options: ["Universal Afirmativa", "Universal Negativa", "Particular Afirmativa", "Particular Negativa"], correct: 2 }
+
+{ text: "2. A conjunção (p ∧ q) só é verdadeira quando:", options: ["Ambas são verdadeiras", "Ambas são falsas", "Pelo menos uma é verdadeira", "Pelo menos uma é falsa"], correct: 0 },
+
+{ text: "3. A disjunção inclusiva (p ∨ q) é falsa quando:", options: ["p é V e q é F", "p é F e q é V", "ambas são F", "ambas são V"], correct: 2 },
+
+{ text: "4. No condicional (p → q), ele só é falso quando:", options: ["p é F e q é V", "p é V e q é F", "ambas são V", "ambas são F"], correct: 1 },
+
+{ text: "5. O bicondicional (p ↔️ q) é verdadeiro quando:", options: ["As proposições têm o mesmo valor", "As proposições são diferentes", "p é V e q é F", "p é F"], correct: 0 },
+
+{ text: "6. Um silogismo é válido quando:", options: ["A conclusão é verdadeira", "As premissas são verdadeiras", "A conclusão decorre logicamente das premissas", "As premissas são longas"], correct: 2 },
+
+{ text: "7. Identifique o sofisma: 'Todo estudante gosta de lógica. João gosta de lógica. Logo, João é estudante.'", options: ["Falácia da conversão", "Argumento válido", "Falácia do meio termo não distribuído", "Generalização"], correct: 0 },
+
+{ text: "8. A dedução lógica consiste em:", options: ["Supor conclusões", "Criar conclusões prováveis", "Aplicar regras formais para conclusões necessárias", "Opinar sobre premissas"], correct: 2 },
+
+{ text: "9. No modus ponens, se 'p → q' e 'p' são verdadeiros, então:", options: ["q é F", "q é V", "q é indeterminado", "q contradiz p"], correct: 1 },
+
+{ text: "10. No modus tollens, se 'p → q' é verdadeiro e 'q' é F, então:", options: ["p é V", "p é F", "p é irrelevante", "p é indeterminado"], correct: 1 },
+
+{ text: "11. A negação correta de 'p ∧ q' é:", options: ["~p ∧ ~q", "~p ∨ ~q", "p ∨ q", "p → q"], correct: 1 },
+
+{ text: "12. A negação correta de 'p → q' é:", options: ["p ∧ ~q", "~p ∧ q", "~p ∧ ~q", "p ∨ ~q"], correct: 0 },
+
+{ text: "13. A disjunção exclusiva (p ⊕ q) é verdadeira quando:", options: ["p e q são V", "p e q são F", "apenas uma é V", "apenas uma é F"], correct: 2 },
+
+{ text: "14. Em um silogismo, o termo médio deve:", options: ["Aparecer na conclusão", "Ser omitido", "Aparecer nas duas premissas", "Ser sempre o predicado"], correct: 2 },
+
+{ text: "15. Um sofisma é:", options: ["Um argumento válido", "Um argumento aparentemente válido, mas falso", "Um silogismo perfeito", "Um raciocínio dedutivo correto"], correct: 1 },
+
+{ text: "16. A dedução é incorreta quando:", options: ["Conduz a uma conclusão provável", "As regras formais não são seguidas", "As premissas são verdadeiras", "A conclusão está escrita de forma errada"], correct: 1 },
+
+{ text: "17. A tabela-verdade do condicional mostra que ele é verdadeiro, exceto quando:", options: ["p e q são V", "p é F", "p é V e q é F", "p e q são F"], correct: 2 },
+
+{ text: "18. Em lógica, uma proposição é:", options: ["Uma ordem", "Uma pergunta", "Uma frase com valor de verdade", "Uma exclamação"], correct: 2 },
+
+{ text: "19. A regra do silogismo hipotético diz que de 'p → q' e 'q → r' conclui-se:", options: ["p → r", "r → p", "p ∧ r", "q ↔️ p"], correct: 0 },
+
+{ text: "20. O erro em 'Se chover, a rua molha. A rua molhou. Logo, choveu.' é:", options: ["Modus ponens", "Modus tollens", "Falácia da afirmação do consequente", "Silogismo válido"], correct: 2 }
     ];
 
     // Variáveis de estado
