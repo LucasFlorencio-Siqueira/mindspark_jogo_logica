@@ -3,44 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MindSpark Quiz</title>
+    <title>MindSpark Quiz - Ultimate</title>
     <style>
         :root {
             --primary: #2c3e50;
             --accent: #2980b9;
             --correct: #27ae60;
             --wrong: #c0392b;
-            --light: #ecf0f1;
+            --light: #ffffff;
             --vs-color: #8e44ad;
+            --online-color: #e67e22; /* Cor Laranja para o modo Online */
         }
         body {
             font-family: 'Segoe UI', sans-serif;
-            background-color: #ffffff;
+            background-color: #f4f6f7;
             color: #333;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start; /* Alinha do topo */
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            padding-top: 50px; /* Espaço para a logo */
+            padding-top: 30px;
             box-sizing: border-box;
         }
         .logo {
-            height: 150px;
+            height: 120px;
             width: auto;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             object-fit: contain;
         }
         .container {
             background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
             width: 95%;
             max-width: 600px;
             overflow: hidden;
             position: relative;
-            min-height: 400px;
+            min-height: 450px;
+            display: flex;
+            flex-direction: column;
         }
         .header {
             background-color: var(--primary);
@@ -49,15 +51,18 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-weight: bold;
+            transition: background-color 0.5s;
         }
-        .timer-bar { height: 5px; background-color: var(--accent); width: 100%; transition: width 1s linear; }
-        .content { padding: 20px; text-align: center; }
-        .screen { display: none; animation: fadeIn 0.5s; }
+        .timer-bar { height: 6px; background-color: var(--accent); width: 100%; transition: width 1s linear; }
+        .content { padding: 25px; text-align: center; flex-grow: 1; }
+        .screen { display: none; animation: fadeIn 0.4s ease-in-out; }
         .active { display: block; }
         
-        input[type="text"] { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 16px;}
+        input[type="text"], input[type="number"] { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; outline: none;}
+        input:focus { border-color: var(--accent); }
         
-        button { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: 0.2s; font-weight: bold; }
+        button { width: 100%; padding: 14px; margin-top: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; transition: 0.2s; font-weight: bold; }
         
         .btn-main { background-color: var(--accent); color: white; }
         .btn-main:hover { background-color: #1f6391; }
@@ -65,58 +70,88 @@
         .btn-vs { background-color: var(--vs-color); color: white; }
         .btn-vs:hover { background-color: #732d91; }
 
-        .btn-option { background-color: var(--light); color: #333; text-align: left; margin-bottom: 8px; font-weight: normal; }
-        .btn-option:hover:not([disabled]) { background-color: #dce4e6; transform: translateX(5px); }
-        .btn-option.correct { background-color: var(--correct); color: white; }
-        .btn-option.wrong { background-color: var(--wrong); color: white; }
+        .btn-online { background-color: var(--online-color); color: white; }
+        .btn-online:hover { background-color: #d35400; }
+
+        .btn-option { background-color: var(--light); color: #333; text-align: left; margin-bottom: 10px; font-weight: normal; border-left: 5px solid transparent; }
+        .btn-option:hover:not([disabled]) { background-color: #dce4e6; transform: translateX(3px); }
+        .btn-option.correct { background-color: var(--correct); color: white; border-left-color: #1e8449; }
+        .btn-option.wrong { background-color: var(--wrong); color: white; border-left-color: #922b21; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
-        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
         th { background-color: var(--accent); color: white; }
         
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; display: none; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; display: none; }
         
-        .vs-score-board {
-            display: flex;
-            justify-content: space-around;
-            margin: 20px 0;
-            font-size: 1.2em;
-        }
-        .winner-highlight { color: var(--correct); font-size: 1.5em; }
+        .vs-score-board { display: flex; justify-content: space-around; margin: 20px 0; font-size: 1.2em; padding: 15px; background: #f9f9f9; border-radius: 10px; }
+        .winner-highlight { color: var(--correct); font-size: 1.6em; margin-top: 15px; font-weight: bold; }
+        
+        .room-code-display { font-size: 3em; letter-spacing: 5px; color: var(--online-color); font-weight: bold; margin: 10px 0; background: #fff3e0; padding: 10px; border-radius: 10px; border: 2px dashed var(--online-color); }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
 <img class="logo" src="static\logo_mindspark.jpeg" alt="logo mindspark">
-
 <div class="container">
     
     <div id="screen-menu" class="screen active content">
-        <h1>⚡ MindSpark Quiz</h1>
-        <p>Escolha seu modo de jogo:</p>
-        <button class="btn-main" onclick="window.goToRankedSetup()">🏆 Jogar Rankeada (Global)</button>
-        <button class="btn-vs" onclick="window.goTo1v1Setup()">⚔️ 1 vs 1 (Local)</button>
+        <h1 style="color: var(--primary);">⚡ MindSpark</h1>
+        <p style="color: #666;">Teste sua Lógica e Filosofia</p>
+        
+        <button class="btn-main" onclick="window.goToRankedSetup()">🏆 Rankeada Global</button>
+        <button class="btn-vs" onclick="window.goTo1v1Setup()">⚔️ 1 vs 1 Local</button>
+        <button class="btn-online" onclick="window.goToOnlineSetup()">🌐 1 vs 1 Online</button>
     </div>
 
     <div id="screen-setup-ranked" class="screen content">
-        <h2>🏆 Modo Rankeada</h2>
-        <p>Seu resultado vai para o ranking global!</p>
+        <h2 style="color: var(--accent);">🏆 Modo Rankeada</h2>
+        <p>Valendo pontuação no ranking global.</p>
         <label>Seu Nickname:</label>
-        <input type="text" id="nick-ranked" placeholder="Ex: MestreDaLogica" maxlength="15">
+        <input type="text" id="nick-ranked" placeholder="Ex: Aristoteles_Junior" maxlength="15">
         <button class="btn-main" onclick="window.startRanked()">Iniciar Desafio</button>
         <button style="background: #95a5a6; color:white" onclick="location.reload()">Voltar</button>
     </div>
 
     <div id="screen-setup-1v1" class="screen content">
-        <h2>⚔️ Modo 1 vs 1</h2>
-        <p>Desafie um amigo no mesmo PC/Celular.</p>
-        <input type="text" id="nick-p1" placeholder="Nome do Jogador 1" maxlength="10">
-        <input type="text" id="nick-p2" placeholder="Nome do Jogador 2" maxlength="10">
+        <h2 style="color: var(--vs-color);">⚔️ Modo 1 vs 1 Local</h2>
+        <p>Dividam o mesmo dispositivo.</p>
+        <input type="text" id="nick-p1" placeholder="Nome Jogador 1" maxlength="10">
+        <input type="text" id="nick-p2" placeholder="Nome Jogador 2" maxlength="10">
         <button class="btn-vs" onclick="window.start1v1()">Começar Batalha</button>
         <button style="background: #95a5a6; color:white" onclick="location.reload()">Voltar</button>
+    </div>
+
+    <div id="screen-setup-online" class="screen content">
+        <h2 style="color: var(--online-color);">🌐 Modo Online</h2>
+        <p>Jogue em tempo real em dispositivos diferentes.</p>
+        
+        <input type="text" id="nick-online" placeholder="Seu Nickname" maxlength="12">
+        
+        <div style="margin: 20px 0; border-top: 1px solid #eee; padding-top: 20px;">
+            <h3>Criar uma Sala</h3>
+            <button class="btn-online" onclick="window.createRoom()">🏠 Gerar Código de Sala</button>
+        </div>
+        
+        <div style="margin: 20px 0; border-top: 1px solid #eee; padding-top: 20px;">
+            <h3>Ou Entrar em Sala</h3>
+            <input type="number" id="room-code-input" placeholder="Digite o Código (Ex: 1234)">
+            <button class="btn-main" onclick="window.joinRoom()">➡️ Conectar</button>
+        </div>
+
+        <button style="background: #95a5a6; color:white" onclick="location.reload()">Voltar</button>
+    </div>
+
+    <div id="screen-lobby" class="screen content">
+        <h2>Aguardando Oponente...</h2>
+        <p>Compartilhe este código com seu amigo:</p>
+        <div id="display-room-code" class="room-code-display">----</div>
+        <div class="loader" style="display:block"></div>
+        <p style="font-size: 0.9em; color: gray;">O jogo começará automaticamente assim que ele entrar.</p>
+        <button style="background: #e74c3c; color:white; margin-top: 30px;" onclick="location.reload()">Cancelar</button>
     </div>
 
     <div id="screen-intermission" class="screen content">
@@ -134,7 +169,7 @@
         </div>
         <div class="timer-bar" id="timer-bar"></div>
         <div class="content">
-            <div id="question-text" style="font-size: 1.1em; font-weight: bold; margin-bottom: 20px;">...</div>
+            <div id="question-text" style="font-size: 1.1em; font-weight: bold; margin-bottom: 20px; min-height: 60px;">...</div>
             <div id="options-container"></div>
             <div id="feedback-area" style="min-height: 20px; margin-top: 10px; font-weight: bold;"></div>
         </div>
@@ -143,29 +178,30 @@
     <div id="screen-result" class="screen content">
         <h2>Fim de Jogo!</h2>
         
-        <div id="result-1v1-block" style="display:none;">
+        <div id="result-vs-block" style="display:none;">
             <div class="vs-score-board">
-                <div>
-                    <div id="res-p1-name">P1</div>
-                    <div id="res-p1-score" style="font-weight:bold; color:var(--accent)">0</div>
-                    <small id="res-p1-hits">0 acertos</small>
+                <div style="text-align: center;">
+                    <div id="res-p1-name" style="font-size: 0.8em; color: #555;">P1</div>
+                    <div id="res-p1-score" style="font-weight:bold; font-size: 1.5em; color:var(--primary)">0</div>
+                    <small id="res-p1-hits">Hits: 0</small>
                 </div>
-                <div style="align-self:center; font-weight:bold;">VS</div>
-                <div>
-                    <div id="res-p2-name">P2</div>
-                    <div id="res-p2-score" style="font-weight:bold; color:var(--vs-color)">0</div>
-                    <small id="res-p2-hits">0 acertos</small>
+                <div style="align-self:center; font-weight:bold; color: #999;">VS</div>
+                <div style="text-align: center;">
+                    <div id="res-p2-name" style="font-size: 0.8em; color: #555;">P2</div>
+                    <div id="res-p2-score" style="font-weight:bold; font-size: 1.5em; color:var(--vs-color)">0</div>
+                    <small id="res-p2-hits">Hits: 0</small>
                 </div>
             </div>
-            <hr>
             <div id="winner-display" class="winner-highlight"></div>
+            <p id="online-waiting-msg" style="display:none; color:gray; font-style:italic;">Aguardando oponente finalizar...</p>
         </div>
 
         <div id="result-ranked-block" style="display:none;">
-            <p>Nick: <strong id="final-nick"></strong> | Pontos: <strong id="final-score" style="color: var(--accent); font-size: 1.4em;"></strong></p>
+            <p>Nick: <strong id="final-nick"></strong></p>
+            <p>Pontuação Final: <strong id="final-score" style="color: var(--accent); font-size: 2em;"></strong></p>
             <p id="save-status" style="font-style: italic; color: gray;">Salvando no ranking...</p>
             
-            <h3>🏆 Top 10 Global</h3>
+            <h3 style="margin-top: 30px;">🏆 Top 10 Global</h3>
             <div id="loading-ranking" class="loader"></div>
             <table id="ranking-table">
                 <thead><tr><th>#</th><th>Nick</th><th>Pts</th><th>Data</th></tr></thead>
@@ -180,8 +216,12 @@
 </div>
 
 <script type="module">
+    // Importação Completa do Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { 
+        getFirestore, collection, addDoc, getDocs, query, orderBy, limit, 
+        doc, setDoc, updateDoc, getDoc, onSnapshot 
+    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyB8MomzCsIFp66mFbpvgW3q1CyYMjQWM0k",
@@ -194,71 +234,61 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    
     const TABLE_NAME = "ranking_quiz_logica";
+    const ROOMS_COLLECTION = "rooms";
 
     // --------------------------------------------------------------
     // BANCO DE QUESTÕES
     // --------------------------------------------------------------
     const questionPool = [
         { text: "1. ~p (negação) de uma proposição Falsa é:", options: ["Falsa", "Verdadeira", "Nula", "Incerta"], correct: 1 },
-
-{ text: "2. A conjunção (p ∧ q) só é verdadeira quando:", options: ["Ambas são verdadeiras", "Ambas são falsas", "Pelo menos uma é verdadeira", "Pelo menos uma é falsa"], correct: 0 },
-
-{ text: "3. A disjunção inclusiva (p ∨ q) é falsa quando:", options: ["p é V e q é F", "p é F e q é V", "ambas são F", "ambas são V"], correct: 2 },
-
-{ text: "4. No condicional (p → q), ele só é falso quando:", options: ["p é F e q é V", "p é V e q é F", "ambas são V", "ambas são F"], correct: 1 },
-
-{ text: "5. O bicondicional (p ↔️ q) é verdadeiro quando:", options: ["As proposições têm o mesmo valor", "As proposições são diferentes", "p é V e q é F", "p é F"], correct: 0 },
-
-{ text: "6. Um silogismo é válido quando:", options: ["A conclusão é verdadeira", "As premissas são verdadeiras", "A conclusão decorre logicamente das premissas", "As premissas são longas"], correct: 2 },
-
-{ text: "7. Identifique o sofisma: 'Todo estudante gosta de lógica. João gosta de lógica. Logo, João é estudante.'", options: ["Falácia da conversão", "Argumento válido", "Falácia do meio termo não distribuído", "Generalização"], correct: 0 },
-
-{ text: "8. A dedução lógica consiste em:", options: ["Supor conclusões", "Criar conclusões prováveis", "Aplicar regras formais para conclusões necessárias", "Opinar sobre premissas"], correct: 2 },
-
-{ text: "9. No modus ponens, se 'p → q' e 'p' são verdadeiros, então:", options: ["q é F", "q é V", "q é indeterminado", "q contradiz p"], correct: 1 },
-
-{ text: "10. No modus tollens, se 'p → q' é verdadeiro e 'q' é F, então:", options: ["p é V", "p é F", "p é irrelevante", "p é indeterminado"], correct: 1 },
-
-{ text: "11. A negação correta de 'p ∧ q' é:", options: ["~p ∧ ~q", "~p ∨ ~q", "p ∨ q", "p → q"], correct: 1 },
-
-{ text: "12. A negação correta de 'p → q' é:", options: ["p ∧ ~q", "~p ∧ q", "~p ∧ ~q", "p ∨ ~q"], correct: 0 },
-
-{ text: "13. A disjunção exclusiva (p ⊕ q) é verdadeira quando:", options: ["p e q são V", "p e q são F", "apenas uma é V", "apenas uma é F"], correct: 2 },
-
-{ text: "14. Em um silogismo, o termo médio deve:", options: ["Aparecer na conclusão", "Ser omitido", "Aparecer nas duas premissas", "Ser sempre o predicado"], correct: 2 },
-
-{ text: "15. Um sofisma é:", options: ["Um argumento válido", "Um argumento aparentemente válido, mas falso", "Um silogismo perfeito", "Um raciocínio dedutivo correto"], correct: 1 },
-
-{ text: "16. A dedução é incorreta quando:", options: ["Conduz a uma conclusão provável", "As regras formais não são seguidas", "As premissas são verdadeiras", "A conclusão está escrita de forma errada"], correct: 1 },
-
-{ text: "17. A tabela-verdade do condicional mostra que ele é verdadeiro, exceto quando:", options: ["p e q são V", "p é F", "p é V e q é F", "p e q são F"], correct: 2 },
-
-{ text: "18. Em lógica, uma proposição é:", options: ["Uma ordem", "Uma pergunta", "Uma frase com valor de verdade", "Uma exclamação"], correct: 2 },
-
-{ text: "19. A regra do silogismo hipotético diz que de 'p → q' e 'q → r' conclui-se:", options: ["p → r", "r → p", "p ∧ r", "q ↔️ p"], correct: 0 },
-
-{ text: "20. O erro em 'Se chover, a rua molha. A rua molhou. Logo, choveu.' é:", options: ["Modus ponens", "Modus tollens", "Falácia da afirmação do consequente", "Silogismo válido"], correct: 2 }
+        { text: "2. A conjunção (p ∧ q) só é verdadeira quando:", options: ["Ambas são verdadeiras", "Ambas são falsas", "Pelo menos uma é verdadeira", "Pelo menos uma é falsa"], correct: 0 },
+        { text: "3. A disjunção inclusiva (p ∨ q) é falsa quando:", options: ["p é V e q é F", "p é F e q é V", "ambas são F", "ambas são V"], correct: 2 },
+        { text: "4. No condicional (p → q), ele só é falso quando:", options: ["p é F e q é V", "p é V e q é F", "ambas são V", "ambas são F"], correct: 1 },
+        { text: "5. O bicondicional (p ↔️ q) é verdadeiro quando:", options: ["As proposições têm o mesmo valor", "As proposições são diferentes", "p é V e q é F", "p é F"], correct: 0 },
+        { text: "6. Um silogismo é válido quando:", options: ["A conclusão é verdadeira", "As premissas são verdadeiras", "A conclusão decorre logicamente das premissas", "As premissas são longas"], correct: 2 },
+        { text: "7. Identifique o sofisma: 'Todo estudante gosta de lógica. João gosta de lógica. Logo, João é estudante.'", options: ["Falácia da conversão", "Argumento válido", "Falácia do meio termo não distribuído", "Generalização"], correct: 0 },
+        { text: "8. A dedução lógica consiste em:", options: ["Supor conclusões", "Criar conclusões prováveis", "Aplicar regras formais para conclusões necessárias", "Opinar sobre premissas"], correct: 2 },
+        { text: "9. No modus ponens, se 'p → q' e 'p' são verdadeiros, então:", options: ["q é F", "q é V", "q é indeterminado", "q contradiz p"], correct: 1 },
+        { text: "10. No modus tollens, se 'p → q' é verdadeiro e 'q' é F, então:", options: ["p é V", "p é F", "p é irrelevante", "p é indeterminado"], correct: 1 },
+        { text: "11. A negação correta de 'p ∧ q' é:", options: ["~p ∧ ~q", "~p ∨ ~q", "p ∨ q", "p → q"], correct: 1 },
+        { text: "12. A negação correta de 'p → q' é:", options: ["p ∧ ~q", "~p ∧ q", "~p ∧ ~q", "p ∨ ~q"], correct: 0 },
+        { text: "13. A disjunção exclusiva (p ⊕ q) é verdadeira quando:", options: ["p e q são V", "p e q são F", "apenas uma é V", "apenas uma é F"], correct: 2 },
+        { text: "14. Em um silogismo, o termo médio deve:", options: ["Aparecer na conclusão", "Ser omitido", "Aparecer nas duas premissas", "Ser sempre o predicado"], correct: 2 },
+        { text: "15. Um sofisma é:", options: ["Um argumento válido", "Um argumento aparentemente válido, mas falso", "Um silogismo perfeito", "Um raciocínio dedutivo correto"], correct: 1 },
+        { text: "16. A dedução é incorreta quando:", options: ["Conduz a uma conclusão provável", "As regras formais não são seguidas", "As premissas são verdadeiras", "A conclusão está escrita de forma errada"], correct: 1 },
+        { text: "17. A tabela-verdade do condicional mostra que ele é verdadeiro, exceto quando:", options: ["p e q são V", "p é F", "p é V e q é F", "p e q são F"], correct: 2 },
+        { text: "18. Em lógica, uma proposição é:", options: ["Uma ordem", "Uma pergunta", "Uma frase com valor de verdade", "Uma exclamação"], correct: 2 },
+        { text: "19. A regra do silogismo hipotético diz que de 'p → q' e 'q → r' conclui-se:", options: ["p → r", "r → p", "p ∧ r", "q ↔️ p"], correct: 0 },
+        { text: "20. O erro em 'Se chover, a rua molha. A rua molhou. Logo, choveu.' é:", options: ["Modus ponens", "Modus tollens", "Falácia da afirmação do consequente", "Silogismo válido"], correct: 2 }
     ];
 
-    // Variáveis de estado
+    // --------------------------------------------------------------
+    // ESTADO DO JOGO
+    // --------------------------------------------------------------
     let questions = [];
     let state = { 
-        mode: '', 
+        mode: '', // 'ranked', '1v1', 'online'
         index: 0, 
         time: 25, 
         timer: null, 
         busy: false,
-        intermissionShown: false, // <--- NOVA VARIÁVEL DE CONTROLE PARA CORRIGIR O BUG
+        intermissionShown: false, 
         
         // Dados Rankeada
         nick: "", score: 0,
         
-        // Dados 1v1
+        // Dados 1v1 Local e Online
         p1Name: "", p2Name: "",
         p1Score: 0, p2Score: 0,
         p1Hits: 0, p2Hits: 0
     };
+
+    // Variáveis Específicas do Online
+    let currentRoomId = null;
+    let myPlayerSlot = ""; // "host" ou "guest"
+    let unsubscribeRoom = null;
 
     // --------------------------------------------------------------
     // NAVEGAÇÃO
@@ -273,10 +303,16 @@
         document.getElementById('screen-setup-1v1').classList.add('active');
     };
 
+    window.goToOnlineSetup = () => {
+        document.getElementById('screen-menu').classList.remove('active');
+        document.getElementById('screen-setup-online').classList.add('active');
+    }
+
     // --------------------------------------------------------------
     // INICIAR MODOS
     // --------------------------------------------------------------
     
+    // --- RANKEADA ---
     window.startRanked = () => {
         const nickInput = document.getElementById('nick-ranked').value.trim();
         if(!nickInput) return alert("Digite um Nickname!");
@@ -287,38 +323,145 @@
         state.index = 0;
 
         questions = [...questionPool].sort(() => Math.random() - 0.5).slice(0, 10);
-
-        document.getElementById('screen-setup-ranked').classList.remove('active');
-        document.getElementById('screen-quiz').classList.add('active');
         
-        document.getElementById('player-turn-display').innerText = state.nick;
-        document.getElementById('quiz-header').style.backgroundColor = "var(--primary)";
-        
+        setupQuizScreen("var(--primary)", state.nick);
         loadQuestion();
     };
 
+    // --- 1V1 LOCAL ---
     window.start1v1 = () => {
         const p1 = document.getElementById('nick-p1').value.trim() || "Jogador 1";
         const p2 = document.getElementById('nick-p2').value.trim() || "Jogador 2";
 
         state.mode = '1v1';
-        state.p1Name = p1;
-        state.p2Name = p2;
+        state.p1Name = p1; state.p2Name = p2;
         state.p1Score = 0; state.p2Score = 0;
         state.p1Hits = 0; state.p2Hits = 0;
         state.index = 0;
-        state.intermissionShown = false; // <--- RESETANDO A VARIÁVEL AQUI
+        state.intermissionShown = false;
 
         questions = [...questionPool].sort(() => Math.random() - 0.5).slice(0, 10);
 
         document.getElementById('screen-setup-1v1').classList.remove('active');
         document.getElementById('screen-quiz').classList.add('active');
-
-        updateTurnDisplay();
+        updateTurnDisplayLocal();
         loadQuestion();
     };
 
-    function updateTurnDisplay() {
+    // --- 1V1 ONLINE (LÓGICA) ---
+    
+    // 1. Criar Sala (Host)
+    window.createRoom = async () => {
+        const nick = document.getElementById('nick-online').value.trim() || "Host";
+        const roomId = Math.floor(1000 + Math.random() * 9000).toString();
+        
+        currentRoomId = roomId;
+        myPlayerSlot = "host";
+        state.nick = nick;
+
+        // Gera ordem aleatória de perguntas
+        const shuffledIndices = [...Array(questionPool.length).keys()].sort(() => Math.random() - 0.5).slice(0, 10);
+
+        const roomData = {
+            roomId: roomId,
+            status: "waiting", 
+            host: { name: nick, score: 0, finished: false },
+            guest: { name: "", score: 0, finished: false },
+            questionOrder: shuffledIndices
+        };
+
+        try {
+            await setDoc(doc(db, ROOMS_COLLECTION, roomId), roomData);
+            document.getElementById('screen-setup-online').classList.remove('active');
+            document.getElementById('screen-lobby').classList.add('active');
+            document.getElementById('display-room-code').innerText = roomId;
+            listenToRoom(roomId);
+        } catch(e) {
+            alert("Erro ao criar sala: " + e.message);
+        }
+    };
+
+    // 2. Entrar Sala (Convidado)
+    window.joinRoom = async () => {
+        const nick = document.getElementById('nick-online').value.trim() || "Convidado";
+        const code = document.getElementById('room-code-input').value.trim();
+
+        if(!code) return alert("Digite o código!");
+
+        const roomRef = doc(db, ROOMS_COLLECTION, code);
+        const roomSnap = await getDoc(roomRef);
+
+        if (!roomSnap.exists()) return alert("Sala não encontrada!");
+        if (roomSnap.data().status !== "waiting") return alert("Jogo já começou ou sala cheia!");
+
+        currentRoomId = code;
+        myPlayerSlot = "guest";
+        state.nick = nick;
+
+        await updateDoc(roomRef, {
+            "guest.name": nick,
+            status: "playing"
+        });
+
+        listenToRoom(code);
+    };
+
+    // 3. Listener (Sincronização)
+    function listenToRoom(roomId) {
+        unsubscribeRoom = onSnapshot(doc(db, ROOMS_COLLECTION, roomId), (docSnapshot) => {
+            const data = docSnapshot.data();
+            if(!data) return;
+
+            // Iniciar Jogo
+            if (data.status === "playing" && document.getElementById('screen-quiz').style.display !== 'block' && document.getElementById('screen-result').style.display !== 'block') {
+                startOnlineGame(data);
+            }
+
+            // Atualizar Pontos em Tempo Real (Visual)
+            if (state.mode === 'online') {
+                state.p1Score = data.host.score;
+                state.p2Score = data.guest.score;
+                // Se estivermos na tela de resultado, atualiza a UI
+                if(document.getElementById('screen-result').classList.contains('active')){
+                    document.getElementById('res-p1-score').innerText = state.p1Score;
+                    document.getElementById('res-p2-score').innerText = state.p2Score;
+                    determineWinner(state.p1Score, state.p2Score, data.host.name, data.guest.name);
+                }
+            }
+        });
+    }
+
+    function startOnlineGame(roomData) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('screen-quiz').classList.add('active');
+
+        state.mode = 'online';
+        state.p1Name = roomData.host.name;
+        state.p2Name = roomData.guest.name;
+        state.p1Score = 0; state.p2Score = 0;
+        state.index = 0;
+        state.score = 0; // Score local temporário
+
+        // Mapeia os índices salvos para as perguntas reais
+        questions = roomData.questionOrder.map(i => questionPool[i]);
+
+        document.getElementById('quiz-header').style.backgroundColor = "var(--online-color)";
+        document.getElementById('player-turn-display').innerText = `Jogando como: ${state.nick}`;
+        
+        loadQuestion();
+    }
+
+    // --------------------------------------------------------------
+    // AUXILIARES DE TELA
+    // --------------------------------------------------------------
+    function setupQuizScreen(color, name) {
+        document.getElementById('screen-setup-ranked').classList.remove('active');
+        document.getElementById('screen-quiz').classList.add('active');
+        document.getElementById('player-turn-display').innerText = name;
+        document.getElementById('quiz-header').style.backgroundColor = color;
+    }
+
+    function updateTurnDisplayLocal() {
         const display = document.getElementById('player-turn-display');
         const header = document.getElementById('quiz-header');
         
@@ -334,40 +477,35 @@
     window.resumeGame1v1 = () => {
         document.getElementById('screen-intermission').classList.remove('active');
         document.getElementById('screen-quiz').classList.add('active');
-        
-        // Aqui não precisamos chamar updateTurnDisplay nem loadQuestion manualmente,
-        // vamos deixar o fluxo seguir, mas precisamos garantir que o loop não ocorra.
-        updateTurnDisplay();
+        updateTurnDisplayLocal();
         loadQuestion(); 
     }
 
     // --------------------------------------------------------------
-    // LÓGICA DO QUIZ
+    // LÓGICA DO QUIZ (CORE)
     // --------------------------------------------------------------
 
     function loadQuestion() {
-        // CORREÇÃO DO BUG AQUI:
-        // Verifica se é hora de pausar E se já não pausamos antes
+        // Pausa para 1v1 Local
         if(state.mode === '1v1' && state.index === 5 && !state.intermissionShown) {
-            
-            state.intermissionShown = true; // Marca que já pausou
-            
+            state.intermissionShown = true;
             document.getElementById('screen-quiz').classList.remove('active');
             document.getElementById('screen-intermission').classList.add('active');
-            
-            clearInterval(state.timer); // Garante que o tempo pare
-            return; // Para a execução
+            clearInterval(state.timer);
+            return;
         }
 
         resetTimer();
         const q = questions[state.index];
-        
         document.getElementById('question-text').innerText = q.text;
         
+        // Controle de display de progresso
         let displayIndex = state.index + 1;
-        if(state.mode === '1v1' && state.index >= 5) displayIndex -= 5;
-        let totalQ = (state.mode === '1v1') ? 5 : 10;
-
+        let totalQ = 10;
+        if(state.mode === '1v1') {
+            totalQ = 5;
+            if(state.index >= 5) displayIndex -= 5;
+        }
         document.getElementById('q-progress').innerText = `Q: ${displayIndex}/${totalQ}`;
         
         const container = document.getElementById('options-container');
@@ -405,11 +543,13 @@
             feedback.style.color = "#c0392b";
         }
 
+        // Cálculo de Pontos
         const points = isCorrect ? (100 + (state.time * 10)) : 0;
         
         if(state.mode === 'ranked') {
             state.score += points;
-        } else {
+        } 
+        else if (state.mode === '1v1') {
             if(state.index < 5) {
                 state.p1Score += points;
                 if(isCorrect) state.p1Hits++;
@@ -417,6 +557,15 @@
                 state.p2Score += points;
                 if(isCorrect) state.p2Hits++;
             }
+        }
+        else if (state.mode === 'online') {
+            state.score += points; // Acumula no local
+            // Envia para o banco
+            const updateField = (myPlayerSlot === "host") ? "host.score" : "guest.score";
+            const roomRef = doc(db, ROOMS_COLLECTION, currentRoomId);
+            updateDoc(roomRef, {
+                [updateField]: state.score
+            });
         }
 
         setTimeout(() => {
@@ -466,58 +615,81 @@
 
     function resetTimer() { clearInterval(state.timer); }
 
+    // --------------------------------------------------------------
+    // FINALIZAÇÃO
+    // --------------------------------------------------------------
+
     async function finishGame() {
         document.getElementById('screen-quiz').classList.remove('active');
         document.getElementById('screen-result').classList.add('active');
         
         const rankedBlock = document.getElementById('result-ranked-block');
-        const vsBlock = document.getElementById('result-1v1-block');
+        const vsBlock = document.getElementById('result-vs-block');
 
+        // RANKEADA
         if(state.mode === 'ranked') {
             rankedBlock.style.display = 'block';
             vsBlock.style.display = 'none';
-            
             document.getElementById('final-nick').innerText = state.nick;
             document.getElementById('final-score').innerText = state.score;
             await saveScore(state.nick, state.score);
-
-        } else {
+        } 
+        // 1V1 LOCAL
+        else if (state.mode === '1v1') {
             rankedBlock.style.display = 'none';
             vsBlock.style.display = 'block';
-
-            document.getElementById('res-p1-name').innerText = state.p1Name;
-            document.getElementById('res-p1-score').innerText = state.p1Score;
-            document.getElementById('res-p1-hits').innerText = `${state.p1Hits}/5 acertos`;
-
-            document.getElementById('res-p2-name').innerText = state.p2Name;
-            document.getElementById('res-p2-score').innerText = state.p2Score;
-            document.getElementById('res-p2-hits').innerText = `${state.p2Hits}/5 acertos`;
-
-            const winnerDiv = document.getElementById('winner-display');
-            if(state.p1Score > state.p2Score) {
-                winnerDiv.innerText = `🏆 Vencedor: ${state.p1Name}!`;
-            } else if (state.p2Score > state.p1Score) {
-                winnerDiv.innerText = `🏆 Vencedor: ${state.p2Name}!`;
-            } else {
-                winnerDiv.innerText = `🤝 Empate!`;
-            }
+            showVsResults(state.p1Name, state.p1Score, state.p1Hits, state.p2Name, state.p2Score, state.p2Hits);
+            determineWinner(state.p1Score, state.p2Score, state.p1Name, state.p2Name);
+        }
+        // ONLINE
+        else if (state.mode === 'online') {
+            rankedBlock.style.display = 'none';
+            vsBlock.style.display = 'block';
+            document.getElementById('online-waiting-msg').style.display = "block";
+            
+            // Pega os dados mais recentes do listener
+            // Nota: hits não são sincronizados no online simplificado, apenas score
+            showVsResults(state.p1Name, state.p1Score, "-", state.p2Name, state.p2Score, "-");
+            determineWinner(state.p1Score, state.p2Score, state.p1Name, state.p2Name);
         }
     }
 
+    function showVsResults(n1, s1, h1, n2, s2, h2) {
+        document.getElementById('res-p1-name').innerText = n1;
+        document.getElementById('res-p1-score').innerText = s1;
+        document.getElementById('res-p1-hits').innerText = (h1 === "-") ? "" : `${h1}/5 acertos`;
+
+        document.getElementById('res-p2-name').innerText = n2;
+        document.getElementById('res-p2-score').innerText = s2;
+        document.getElementById('res-p2-hits').innerText = (h2 === "-") ? "" : `${h2}/5 acertos`;
+    }
+
+    function determineWinner(s1, s2, n1, n2) {
+        const winnerDiv = document.getElementById('winner-display');
+        if(s1 > s2) {
+            winnerDiv.innerText = `🏆 ${n1} Venceu!`;
+        } else if (s2 > s1) {
+            winnerDiv.innerText = `🏆 ${n2} Venceu!`;
+        } else {
+            winnerDiv.innerText = `🤝 Empate!`;
+        }
+    }
+
+    // --------------------------------------------------------------
+    // FIRESTORE RANKING
+    // --------------------------------------------------------------
     async function saveScore(nick, score) {
         const statusMsg = document.getElementById('save-status');
         try {
             await addDoc(collection(db, TABLE_NAME), {
-                nick: nick,
-                score: score,
-                date: new Date()
+                nick: nick, score: score, date: new Date()
             });
-            statusMsg.innerText = "Pontuação salva no Ranking Global! 🌎";
+            statusMsg.innerText = "Salvo no Ranking Global! 🌎";
             statusMsg.style.color = "green";
             loadRanking();
         } catch (e) {
-            console.error("Erro ao salvar: ", e);
-            statusMsg.innerText = "Erro ao conectar (mas você jogou bem!)";
+            console.error(e);
+            statusMsg.innerText = "Erro ao conectar.";
         }
     }
 
@@ -534,16 +706,14 @@
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 let dateStr = "";
-                if(data.date && data.date.toDate) {
-                    dateStr = data.date.toDate().toLocaleDateString('pt-BR');
-                }
+                if(data.date && data.date.toDate) dateStr = data.date.toDate().toLocaleDateString('pt-BR');
+                
                 const tr = document.createElement('tr');
                 tr.innerHTML = `<td>${position}º</td><td>${data.nick}</td><td><strong>${data.score}</strong></td><td style="font-size:0.8em; color:#666;">${dateStr}</td>`;
                 tbody.appendChild(tr);
                 position++;
             });
         } catch (e) {
-            console.error(e);
             tbody.innerHTML = "<tr><td colspan='4'>Erro ao carregar ranking.</td></tr>";
         } finally {
             loader.style.display = "none";
