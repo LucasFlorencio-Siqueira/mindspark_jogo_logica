@@ -268,6 +268,8 @@
     // ESTADO DO JOGO
     // --------------------------------------------------------------
     let questions = [];
+    
+    let onlineGameStarted = false; // <--- NOVA TRAVA DE SEGURANÇA
     let state = { 
         mode: '', // 'ranked', '1v1', 'online'
         index: 0, 
@@ -408,48 +410,56 @@
 
     // 3. Listener (Sincronização)
     function listenToRoom(roomId) {
-        unsubscribeRoom = onSnapshot(doc(db, ROOMS_COLLECTION, roomId), (docSnapshot) => {
-            const data = docSnapshot.data();
-            if(!data) return;
+    unsubscribeRoom = onSnapshot(doc(db, ROOMS_COLLECTION, roomId), (docSnapshot) => {
+        const data = docSnapshot.data();
+        if(!data) return;
 
-            // Iniciar Jogo
-            if (data.status === "playing" && document.getElementById('screen-quiz').style.display !== 'block' && document.getElementById('screen-result').style.display !== 'block') {
-                startOnlineGame(data);
-            }
+        // --- CORREÇÃO AQUI ---
+        // Só inicia se o status for 'playing' E se a nossa trava for falsa
+        if (data.status === "playing" && !onlineGameStarted) {
+            onlineGameStarted = true; // Trava imediatamente para não entrar de novo
+            startOnlineGame(data);
+        }
+        // ---------------------
 
-            // Atualizar Pontos em Tempo Real (Visual)
-            if (state.mode === 'online') {
-                state.p1Score = data.host.score;
-                state.p2Score = data.guest.score;
-                // Se estivermos na tela de resultado, atualiza a UI
-                if(document.getElementById('screen-result').classList.contains('active')){
-                    document.getElementById('res-p1-score').innerText = state.p1Score;
-                    document.getElementById('res-p2-score').innerText = state.p2Score;
-                    determineWinner(state.p1Score, state.p2Score, data.host.name, data.guest.name);
-                }
+        // Atualizar Pontos em Tempo Real (Visual)
+        if (state.mode === 'online') {
+            state.p1Score = data.host.score;
+            state.p2Score = data.guest.score;
+            // Se estivermos na tela de resultado, atualiza a UI
+            if(document.getElementById('screen-result').classList.contains('active')){
+                document.getElementById('res-p1-score').innerText = state.p1Score;
+                document.getElementById('res-p2-score').innerText = state.p2Score;
+                determineWinner(state.p1Score, state.p2Score, data.host.name, data.guest.name);
             }
-        });
-    }
+        }
+    });
+}
 
     function startOnlineGame(roomData) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById('screen-quiz').classList.add('active');
+    // 1. Matar qualquer timer fantasma que possa existir
+    clearInterval(state.timer); 
+    state.busy = false;
 
-        state.mode = 'online';
-        state.p1Name = roomData.host.name;
-        state.p2Name = roomData.guest.name;
-        state.p1Score = 0; state.p2Score = 0;
-        state.index = 0;
-        state.score = 0; // Score local temporário
+    // 2. Esconde lobby, mostra quiz
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-quiz').classList.add('active');
 
-        // Mapeia os índices salvos para as perguntas reais
-        questions = roomData.questionOrder.map(i => questionPool[i]);
+    state.mode = 'online';
+    state.p1Name = roomData.host.name;
+    state.p2Name = roomData.guest.name;
+    state.p1Score = 0; state.p2Score = 0;
+    state.index = 0;
+    state.score = 0; 
 
-        document.getElementById('quiz-header').style.backgroundColor = "var(--online-color)";
-        document.getElementById('player-turn-display').innerText = `Jogando como: ${state.nick}`;
-        
-        loadQuestion();
-    }
+    // Mapeia os índices salvos para as perguntas reais
+    questions = roomData.questionOrder.map(i => questionPool[i]);
+
+    document.getElementById('quiz-header').style.backgroundColor = "var(--online-color)";
+    document.getElementById('player-turn-display').innerText = `Jogando como: ${state.nick}`;
+    
+    loadQuestion();
+}
 
     // --------------------------------------------------------------
     // AUXILIARES DE TELA
