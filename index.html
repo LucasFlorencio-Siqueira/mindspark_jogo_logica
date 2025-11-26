@@ -414,25 +414,29 @@
         const data = docSnapshot.data();
         if(!data) return;
 
-        // Início do Jogo (com a trava de segurança que criamos antes)
+        // Início do Jogo
         if (data.status === "playing" && !onlineGameStarted) {
             onlineGameStarted = true;
             startOnlineGame(data);
         }
 
-        // Atualização de Pontos e Checagem de Fim de Jogo
+        // Atualização Online
         if (state.mode === 'online') {
+            // Atualiza variáveis de estado
             state.p1Score = data.host.score;
             state.p2Score = data.guest.score;
 
-            // Se eu já estou na tela de resultados, atualizo os números ao vivo
+            // Se a tela de resultado estiver ativa, atualiza o placar visual
             if(document.getElementById('screen-result').classList.contains('active')){
                 showVsResults(data.host.name, data.host.score, "-", data.guest.name, data.guest.score, "-");
                 
-                // --- A MÁGICA ACONTECE AQUI ---
-                // Verifica se AMBOS terminaram
-                if (data.host.finished && data.guest.finished) {
-                    document.getElementById('online-waiting-msg').style.display = "none"; // Esconde "Aguardando..."
+                // Converte undefined para false (!!) para segurança
+                const hostFinished = !!data.host.finished;
+                const guestFinished = !!data.guest.finished;
+
+                // Verifica se AMBOS terminaram para liberar o troféu
+                if (hostFinished && guestFinished) {
+                    document.getElementById('online-waiting-msg').style.display = "none";
                     determineWinner(data.host.score, data.guest.score, data.host.name, data.guest.name);
                 }
             }
@@ -634,14 +638,14 @@
     // --------------------------------------------------------------
 
     async function finishGame() {
-    // 1. Esconde o Quiz e mostra a tela de resultado
+    // 1. Prepara a tela de resultados
     document.getElementById('screen-quiz').classList.remove('active');
     document.getElementById('screen-result').classList.add('active');
     
     const rankedBlock = document.getElementById('result-ranked-block');
     const vsBlock = document.getElementById('result-vs-block');
 
-    // --- MODO RANKEADA ---
+    // --- Lógica MODOS (Ranked e 1v1 Local continuam iguais) ---
     if(state.mode === 'ranked') {
         rankedBlock.style.display = 'block';
         vsBlock.style.display = 'none';
@@ -649,36 +653,44 @@
         document.getElementById('final-score').innerText = state.score;
         await saveScore(state.nick, state.score);
     } 
-    // --- MODO 1V1 LOCAL ---
     else if (state.mode === '1v1') {
         rankedBlock.style.display = 'none';
         vsBlock.style.display = 'block';
         showVsResults(state.p1Name, state.p1Score, state.p1Hits, state.p2Name, state.p2Score, state.p2Hits);
         determineWinner(state.p1Score, state.p2Score, state.p1Name, state.p2Name);
     }
-    // --- MODO ONLINE (AQUI ESTÁ A MUDANÇA) ---
+    // --- MODO ONLINE (CORREÇÃO AQUI) ---
     else if (state.mode === 'online') {
         rankedBlock.style.display = 'none';
         vsBlock.style.display = 'block';
         
-        // Esconde quem ganhou por enquanto
+        // Configuração inicial visual
         document.getElementById('winner-display').innerText = ""; 
-        
-        // Mostra mensagem de "Aguardando..."
         const waitMsg = document.getElementById('online-waiting-msg');
         waitMsg.style.display = "block";
         waitMsg.innerText = "Aguardando oponente terminar...";
+        waitMsg.style.color = "gray";
 
-        // Atualiza a tela com os pontos atuais (parciais)
+        // Mostra pontuação parcial
         showVsResults(state.p1Name, state.p1Score, "-", state.p2Name, state.p2Score, "-");
 
-        // AVISA O FIREBASE QUE EU TERMINEI
+        // 1. Avisa o banco que EU terminei
         const roomRef = doc(db, ROOMS_COLLECTION, currentRoomId);
         const fieldToUpdate = (myPlayerSlot === "host") ? "host.finished" : "guest.finished";
         
         await updateDoc(roomRef, {
             [fieldToUpdate]: true
         });
+
+        // 2. CHECK MANUAL: Verifica IMEDIATAMENTE se o outro já tinha terminado
+        // (Isso resolve o bug de ficar preso esperando alguém que já acabou)
+        const snap = await getDoc(roomRef);
+        const data = snap.data();
+        
+        if (data.host.finished && data.guest.finished) {
+            waitMsg.style.display = "none";
+            determineWinner(data.host.score, data.guest.score, data.host.name, data.guest.name);
+        }
     }
 }
 
